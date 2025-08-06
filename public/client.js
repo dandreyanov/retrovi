@@ -10,6 +10,7 @@ document.getElementById('login-form').addEventListener('submit', e => {
   const roomId   = document.getElementById('roomId').value.trim();
   const password = document.getElementById('password').value;
   if (!username || !roomId || !password) return;
+
   socket = io({ auth: { roomId, password, username } });
 
   socket.on('connect_error', err => {
@@ -18,6 +19,8 @@ document.getElementById('login-form').addEventListener('submit', e => {
   });
 
   socket.on('connect', () => {
+    document.getElementById('room-name').textContent = roomId;
+
     loginContainer.style.display = 'none';
     boardContainer.style.display = 'block';
     initBoard();
