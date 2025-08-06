@@ -4,6 +4,29 @@ let socket;
 let elapsed = 0;
 let timerInterval;
 
+// список для равномерного распределения hue
+const authorsList = [];
+// множество для списка пользователей
+const authors = new Set();
+// текущий отфильтрованный автор
+let selectedAuthor = null;
+
+// ---- тема ----
+const themeToggle = document.getElementById('theme-toggle');
+function applyTheme(theme) {
+  document.body.classList.toggle('dark-theme', theme === 'dark');
+  themeToggle.textContent = theme === 'dark' ? '☀️ Светлая' : '🌙 Тёмная';
+}
+const saved = localStorage.getItem('theme') || 'light';
+applyTheme(saved);
+themeToggle.addEventListener('click', () => {
+  const current = document.body.classList.contains('dark-theme') ? 'dark' : 'light';
+  const next = current === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('theme', next);
+  applyTheme(next);
+});
+// ---- /тема ----
+
 document.getElementById('login-form').addEventListener('submit', e => {
   e.preventDefault();
   const username = document.getElementById('username').value.trim();
@@ -20,7 +43,6 @@ document.getElementById('login-form').addEventListener('submit', e => {
 
   socket.on('connect', () => {
     document.getElementById('room-name').textContent = roomId;
-
     loginContainer.style.display = 'none';
     boardContainer.style.display = 'block';
     initBoard();
@@ -28,11 +50,14 @@ document.getElementById('login-form').addEventListener('submit', e => {
 });
 
 function initBoard() {
+  // при новой инициализации очищаем списки авторов
+  authors.clear();
+  authorsList.length = 0;
+
   // Drag & drop
   document.querySelectorAll('.cards').forEach(container => {
     new Sortable(container, {
-      group: 'shared',
-      animation: 150,
+      group: 'shared', animation: 150,
       onEnd: evt => {
         socket.emit('moveCard', {
           cardId: evt.item.dataset.id,
@@ -77,22 +102,19 @@ function initBoard() {
 
   // Socket events
   socket.on('init', board => {
-    authors.clear();
-    // рендерим карточки из board
+    // очищаем визуально доску и собираем авторов
     Object.entries(board.columns).forEach(([col, cards]) => {
       const c = document.querySelector(`.cards[data-column="${col}"]`);
       c.innerHTML = '';
-      cards.forEach(card => {
-        // собираем авторов
-        authors.add(card.author);
-        renderCard(col, card);
-      });
+      cards.forEach(card => renderCard(col, card));
     });
-    // после первого рендеринга — отрисуем список
     updateUserList();
   });
 
-  socket.on('cardAdded', ({ column, card }) => renderCard(column, card));
+  socket.on('cardAdded', ({ column, card }) => {
+    renderCard(column, card);
+  });
+
   socket.on('cardVoted', ({ column, cardId, votes }) => {
     const el = document.querySelector(`.card[data-id="${cardId}"] .votes`);
     if (el) el.textContent = votes;
@@ -103,7 +125,9 @@ function initBoard() {
   });
 
   socket.on('cardMoved', ({ cardId, fromColumn, toColumn, newIndex }) => {
-    const fromEl = document.querySelector(`.cards[data-column="${fromColumn}"] .card[data-id="${cardId}"]`);
+    const fromEl = document.querySelector(
+        `.cards[data-column="${fromColumn}"] .card[data-id="${cardId}"]`
+    );
     const toContainer = document.querySelector(`.cards[data-column="${toColumn}"]`);
     if (fromEl && toContainer) {
       toContainer.insertBefore(fromEl, toContainer.children[newIndex] || null);
@@ -111,23 +135,25 @@ function initBoard() {
   });
 }
 
-function stringToColor(str) {
-  // простой хеш UTF-16 кодов в число
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+/**
+ * Генерирует для каждого автора цвет,
+ * распределяя hue через золотой угол (≈137.5°)
+ * @param {string} author — имя автора
+ * @returns {string} hsl-цвет
+ */
+function stringToColor(author) {
+  // если автора ещё нет в списке — добавляем
+  if (!authorsList.includes(author)) {
+    authorsList.push(author);
   }
-  // получаем hue 0–360°
-  const hue = Math.abs(hash) % 360;
-  // возвращаем бледный HSL
-  return `hsl(${hue}, 70%, 90%)`;
+  const index = authorsList.indexOf(author);
+  const goldenAngle = 137.508;                   // «золотой угол»
+  const hue = (index * goldenAngle) % 360;       // разброс по кругу
+  const saturation = 60;                         // чуть меньше насыщенности
+  const lightness = 85;                          // светлее для контраста
+  return `hsl(${hue.toFixed(2)}, ${saturation}%, ${lightness}%)`;
 }
-// Множество для всех авторов
-const authors = new Set();
-// Текущий выбранный автор (или null)
-let selectedAuthor = null;
 
-// Вызываем при загрузке доски и при добавлении новой карточки
 function updateUserList() {
   const container = document.getElementById('user-list');
   container.innerHTML = '';
@@ -136,7 +162,6 @@ function updateUserList() {
     btn.className = 'user-item' + (selectedAuthor === name ? ' selected' : '');
     btn.textContent = name;
     btn.addEventListener('click', () => {
-      // Тогглим выбор
       selectedAuthor = selectedAuthor === name ? null : name;
       updateUserList();
       updateCardHighlight();
@@ -145,17 +170,13 @@ function updateUserList() {
   });
 }
 
-// Проставляем классы highlight/dim для всех карточек
 function updateCardHighlight() {
   document.querySelectorAll('.card').forEach(cardEl => {
     const author = cardEl.dataset.author;
     cardEl.classList.remove('highlight', 'dim');
     if (selectedAuthor) {
-      if (author === selectedAuthor) {
-        cardEl.classList.add('highlight');
-      } else {
-        cardEl.classList.add('dim');
-      }
+      cardEl.classList.toggle('highlight', author === selectedAuthor);
+      cardEl.classList.toggle('dim', author !== selectedAuthor);
     }
   });
 }
@@ -165,7 +186,7 @@ function renderCard(column, card) {
   const el = document.createElement('div');
   el.className = 'card';
   el.dataset.id = card.id;
-  el.dataset.author = card.author;             // ← добавляем сюда
+  el.dataset.author = card.author;
   el.style.backgroundColor = stringToColor(card.author);
 
   el.innerHTML = `
@@ -178,32 +199,31 @@ function renderCard(column, card) {
   });
   container.appendChild(el);
 
-  // при рисовании новой карточки — обновляем список авторов и состояние фильтра
+  // собираем автора в множество и обновляем список
   authors.add(card.author);
   updateUserList();
   updateCardHighlight();
 }
 
-// Загрузка и отображение списка комнат
+// список комнат
 fetch('/rooms')
-  .then(res => res.json())
-  .then(data => {
-    const ul = document.getElementById('rooms');
-    if (!ul) return;
-    const rooms = data.rooms;
-    if (rooms.length === 0) {
-      ul.innerHTML = '<li>Пока нет комнат</li>';
-    } else {
-      rooms.forEach(id => {
-        const li = document.createElement('li');
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.textContent = id;
-        btn.addEventListener('click', () => {
-          document.getElementById('roomId').value = id;
+    .then(res => res.json())
+    .then(data => {
+      const ul = document.getElementById('rooms');
+      if (!ul) return;
+      if (data.rooms.length === 0) {
+        ul.innerHTML = '<li>Пока нет комнат</li>';
+      } else {
+        data.rooms.forEach(id => {
+          const li = document.createElement('li');
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.textContent = id;
+          btn.addEventListener('click', () => {
+            document.getElementById('roomId').value = id;
+          });
+          li.appendChild(btn);
+          ul.appendChild(li);
         });
-        li.appendChild(btn);
-        ul.appendChild(li);
-      });
-    }
-  });
+      }
+    });

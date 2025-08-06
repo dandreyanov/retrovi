@@ -1,10 +1,27 @@
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: #fff;
-  color: #e74c3c;
+:root {
+  --bg-page: #fff;
+  --text-color: #333;
+  --column-bg: #fff;
+  --column-border: #e74c3c;
+  --card-bg: #fff;
+  --card-text: #333;
+  --card-border: #e74c3c;
+  --vote-color: #e74c3c;
+  --button-bg: #e74c3c;
+  --button-text: #fff;
+  --header-bg: #fff;
+  --header-shadow: rgba(0,0,0,0.1);
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
   margin: 0;
   padding: 0;
-  display: flex;
+  background: var(--bg-page);
+  color: var(--text-color);
+  transition: background-color 0.3s, color 0.3s;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   flex-direction: column;
   align-items: center;
 }
@@ -18,18 +35,21 @@ body {
 
 #board {
   display: flex;
+  justify-content: center;  /* центрируем колонки внутри контейнера */
   gap: 1rem;
+  width: 100%;              /* растягиваем на всю ширину, чтобы justify-content работал */
 }
 
 .column {
-  background: #fff;
-  border: 2px solid #e74c3c;
+  background: var(--column-bg);
+  border: 2px solid var(--column-border);
   padding: 1rem;
   border-radius: 8px;
   width: 220px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   display: flex;			
   flex-direction: column;
+  align-items: center;
 }
 
 .cards {
@@ -38,15 +58,15 @@ body {
 }
 
 .card {
-  background: none;
-  border-left: 4px solid #e74c3c;
+  background: var(--card-bg);
+  color: #000 !important;
+  border-left: 4px solid var(--card-border);
   padding: 0.75rem;
   margin-bottom: 0.5rem;
   border-radius: 6px;
   box-shadow: 0 1px 2px rgba(0,0,0,0.1);
   position: relative;
   cursor: pointer;
-  color: #333;
 }
 
 .card .votes {
@@ -61,13 +81,13 @@ body {
 .card .author {
   display: block;
   font-size: 0.8rem;
-  color: #555;
+  color: #000 !important;
   margin-top: 0.5rem;
 }
 
 button {
-  background: #e74c3c;
-  color: #fff;
+  background: var(--button-bg);
+  color: var(--button-text);
   border: none;
   border-radius: 4px;
   padding: 0.5rem 1rem;
@@ -136,12 +156,12 @@ button:hover {
 
 /* Контейнер для логотипа */
 #site-header {
-  width: 100%;
-  padding: 1rem 0;
   display: flex;
-  justify-content: center; /* по центру */
-  background: #fff;         /* при необходимости фон */
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 2rem;
+  background: var(--header-bg);
+  box-shadow: 0 1px 4px var(--header-shadow);
 }
 
 /* Сам логотип */
@@ -198,4 +218,32 @@ button:hover {
 /* Подсветка карточек выбранного автора */
 .card.highlight {
   box-shadow: 0 0 8px rgba(231,76,60,0.7);
+}
+
+#theme-toggle {
+  margin: 0;               /* сбросим возможные блок-марджины */
+  padding: 0.25rem 0.75rem;/* сделаем компактнее */
+  font-size: 0.9rem;       /* чуть меньше текста */
+  line-height: 1;          /* чтобы не растягивался */
+  background: var(--button-bg);
+  color: var(--button-text);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+body.dark-theme {
+  --bg-page: #1e1e1e;
+  --text-color: #ddd;
+  --column-bg: #2a2a2a;
+  --column-border: #e74c3c;
+  --card-bg: #333;
+  --card-text: #eee;
+  --card-border: #e74c3c;
+  --vote-color: #e74c3c;
+  --button-bg: #e74c3c;
+  --button-text: #fff;
+  --header-bg: #222;
+  --header-shadow: rgba(0,0,0,0.5);
 }
