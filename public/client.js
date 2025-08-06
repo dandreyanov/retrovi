@@ -77,11 +77,19 @@ function initBoard() {
 
   // Socket events
   socket.on('init', board => {
+    authors.clear();
+    // рендерим карточки из board
     Object.entries(board.columns).forEach(([col, cards]) => {
-      const container = document.querySelector(`.cards[data-column="${col}"]`);
-      container.innerHTML = '';
-      cards.forEach(card => renderCard(col, card));
+      const c = document.querySelector(`.cards[data-column="${col}"]`);
+      c.innerHTML = '';
+      cards.forEach(card => {
+        // собираем авторов
+        authors.add(card.author);
+        renderCard(col, card);
+      });
     });
+    // после первого рендеринга — отрисуем список
+    updateUserList();
   });
 
   socket.on('cardAdded', ({ column, card }) => renderCard(column, card));
@@ -114,16 +122,51 @@ function stringToColor(str) {
   // возвращаем бледный HSL
   return `hsl(${hue}, 70%, 90%)`;
 }
+// Множество для всех авторов
+const authors = new Set();
+// Текущий выбранный автор (или null)
+let selectedAuthor = null;
+
+// Вызываем при загрузке доски и при добавлении новой карточки
+function updateUserList() {
+  const container = document.getElementById('user-list');
+  container.innerHTML = '';
+  authors.forEach(name => {
+    const btn = document.createElement('div');
+    btn.className = 'user-item' + (selectedAuthor === name ? ' selected' : '');
+    btn.textContent = name;
+    btn.addEventListener('click', () => {
+      // Тогглим выбор
+      selectedAuthor = selectedAuthor === name ? null : name;
+      updateUserList();
+      updateCardHighlight();
+    });
+    container.appendChild(btn);
+  });
+}
+
+// Проставляем классы highlight/dim для всех карточек
+function updateCardHighlight() {
+  document.querySelectorAll('.card').forEach(cardEl => {
+    const author = cardEl.dataset.author;
+    cardEl.classList.remove('highlight', 'dim');
+    if (selectedAuthor) {
+      if (author === selectedAuthor) {
+        cardEl.classList.add('highlight');
+      } else {
+        cardEl.classList.add('dim');
+      }
+    }
+  });
+}
 
 function renderCard(column, card) {
   const container = document.querySelector(`.cards[data-column="${column}"]`);
   const el = document.createElement('div');
   el.className = 'card';
   el.dataset.id = card.id;
-
-  // получаем цвет по автору
-  const bg = stringToColor(card.author);
-  el.style.backgroundColor = bg;
+  el.dataset.author = card.author;             // ← добавляем сюда
+  el.style.backgroundColor = stringToColor(card.author);
 
   el.innerHTML = `
     <div class="text">${card.text}</div>
@@ -134,6 +177,11 @@ function renderCard(column, card) {
     socket.emit('voteCard', { column, cardId: card.id });
   });
   container.appendChild(el);
+
+  // при рисовании новой карточки — обновляем список авторов и состояние фильтра
+  authors.add(card.author);
+  updateUserList();
+  updateCardHighlight();
 }
 
 // Загрузка и отображение списка комнат

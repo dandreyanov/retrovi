@@ -161,3 +161,41 @@ button:hover {
   font-size: 1.25rem;
   color: #e74c3c;
 }
+
+/* Контейнер списка пользователей */
+#user-list-container {
+  width: 100%;
+  text-align: center;
+  margin-top: 2rem;
+}
+
+#user-list {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.user-item {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #e74c3c;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #e74c3c;
+  background: #fff;
+  user-select: none;
+}
+
+.user-item.selected {
+  background: #e74c3c;
+  color: #fff;
+}
+
+/* Затеняем все карточки, кроме выбранного автора */
+.card.dim {
+  opacity: 0.3;
+}
+
+/* Подсветка карточек выбранного автора */
+.card.highlight {
+  box-shadow: 0 0 8px rgba(231,76,60,0.7);
+}
