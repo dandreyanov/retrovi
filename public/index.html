@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+  <title>РетроВиТех</title>
+</head>
+<body>
+  <div id="login-container">
+    <h2>Место для проведения ретроспектВИвы</h2>
+    <!-- Список существующих комнат -->
+    <div id="rooms-list">
+      <h3>Доступные комнаты:</h3>
+      <ul id="rooms"></ul>
+    </div>
+    <form id="login-form">
+      <input type="text" id="username" placeholder="Твоё имя" required autocomplete="name" />
+      <input type="text" id="roomId" placeholder="ID комнаты" required autocomplete="off" />
+      <input type="password" id="password" placeholder="Пароль" required autocomplete="current-password" />
+      <button type="submit">Войти</button>
+    </form>
+  </div>
+
+  <div id="board-container" style="display:none;">
+    <div id="board">
+      <div class="column" data-column="good">
+        <h2>Что было хорошо</h2>
+        <div class="cards" data-column="good"></div>
+        <button class="add">+ Добавить</button>
+      </div>
+      <div class="column" data-column="bad">
+        <h2>Что было плохо</h2>
+        <div class="cards" data-column="bad"></div>
+        <button class="add">+ Добавить</button>
+      </div>
+      <div class="column" data-column="action">
+        <h2>Что будем с этим делать</h2>
+        <div class="cards" data-column="action"></div>
+        <button class="add">+ Добавить</button>
+      </div>
+    </div>
+    <div id="timer">
+      <span id="time">00:00</span>
+        <div id="timer-controls">
+        <button id="start">Старт</button>
+        <button id="pause">Пауза</button>
+        <button id="reset">Сброс</button>
+        </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="client.js"></script>
+</body>
+</html>
