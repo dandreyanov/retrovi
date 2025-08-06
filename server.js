@@ -1,12 +1,29 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const http = require('http');
+const fs = require('fs');
 const { Server } = require('socket.io');
 const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
+
+const DATA_FILE = path.join(__dirname, 'rooms.json');
+
+// Загружаем состояние из файла (или стартуем с пустого)
+let rooms = {};
+try {
+  const raw = fs.readFileSync(DATA_FILE, 'utf-8');
+  rooms = JSON.parse(raw);
+} catch (e) {
+  rooms = {};
+}
+
+// Функция сохранения в файл
+function saveRooms() {
+  fs.writeFileSync(DATA_FILE, JSON.stringify(rooms, null, 2), 'utf-8');
+}
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -16,7 +33,6 @@ app.get('/rooms', (req, res) => {
   res.json({ rooms: Object.keys(rooms) });
 });
 
-const rooms = {};
 function createBoard() {
   return { columns: { good: [], bad: [], action: [] } };
 }
@@ -32,6 +48,7 @@ io.use((socket, next) => {
       board: createBoard(),
       votesByUser: {}
     };
+    saveRooms();
   }
   if (rooms[roomId].password !== password) {
     return next(new Error('Invalid room or password'));
@@ -54,6 +71,7 @@ io.on('connection', socket => {
       author: username
     };
     rooms[roomId].board.columns[column].push(newCard);
+    saveRooms();
     io.to(roomId).emit('cardAdded', { column, card: newCard });
   });
 
@@ -64,11 +82,11 @@ io.on('connection', socket => {
       socket.emit('voteDenied');
       return;
     }
-    const cards = room.board.columns[column];
-    const card = cards.find(c => c.id === cardId);
+    const card = room.board.columns[column].find(c => c.id === cardId);
     if (!card) return;
     card.votes++;
     room.votesByUser[username] = used + 1;
+    saveRooms();
     io.to(roomId).emit('cardVoted', { column, cardId, votes: card.votes });
   });
 
@@ -78,6 +96,7 @@ io.on('connection', socket => {
     if (idx === -1) return;
     const [card] = from.splice(idx, 1);
     rooms[roomId].board.columns[toColumn].splice(newIndex, 0, card);
+    saveRooms();
     io.to(roomId).emit('cardMoved', { cardId, fromColumn, toColumn, newIndex });
   });
 });
