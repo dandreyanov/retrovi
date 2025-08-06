@@ -27,6 +27,13 @@ themeToggle.addEventListener('click', () => {
 });
 // ---- /тема ----
 
+function animateCard(el, className) {
+  el.classList.add(className);
+  el.addEventListener('animationend', () => {
+    el.classList.remove(className);
+  }, { once: true });
+}
+
 document.getElementById('login-form').addEventListener('submit', e => {
   e.preventDefault();
   const username = document.getElementById('username').value.trim();
@@ -113,13 +120,20 @@ function initBoard() {
 
   socket.on('cardAdded', ({ column, card }) => {
     renderCard(column, card);
+    // найдем только что добавленную карточку и анимируем
+    const el = document.querySelector(`.card[data-id="${card.id}"]`);
+    if (el) animateCard(el, 'fade-in');
   });
 
   socket.on('cardVoted', ({ column, cardId, votes }) => {
-    const el = document.querySelector(`.card[data-id="${cardId}"] .votes`);
-    if (el) el.textContent = votes;
+    const el = document.querySelector(`.card[data-id="${cardId}"]`);
+    if (el) {
+      // обновляем счетчик
+      el.querySelector('.votes').textContent = votes;
+      // даем «вспышку»
+      animateCard(el, 'vote-flash');
+    }
   });
-
   socket.on('voteDenied', () => {
     alert('Вы использовали все 3 голоса');
   });
