@@ -45,7 +45,7 @@ function initBoard() {
   document.querySelectorAll('.add').forEach(btn => {
     btn.addEventListener('click', () => {
       const column = btn.closest('.column').dataset.column;
-      const text = prompt('Enter card text:');
+      const text = prompt('Введите текст карточки:');
       if (text) {
         const card = { id: Date.now().toString(), text };
         socket.emit('addCard', { column, card });
