@@ -281,3 +281,10 @@ body.dark-theme {
   --header-bg: #222;
   --header-shadow: rgba(0,0,0,0.5);
 }
+
+.column h2 {
+  font-size: 1.25rem;
+  white-space: nowrap;      /* запрещаем перенос */
+  overflow: hidden;         /* обрезаем, если не помещается */
+  text-overflow: ellipsis;  /* добавляем “…” при усечении */
+}
