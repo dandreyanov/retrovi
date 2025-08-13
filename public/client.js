@@ -116,6 +116,9 @@ function initBoard() {
       cards.forEach(card => renderCard(col, card));
     });
     updateUserList();
+    
+    // Обновляем значки для всех карточек после инициализации
+    updateMedals();
   });
 
   socket.on('cardAdded', ({ column, card }) => {
@@ -133,6 +136,8 @@ function initBoard() {
       // даем «вспышку»
       animateCard(el, 'vote-flash');
     }
+    // Обновляем значки после изменения голосов
+    updateMedals();
   });
   socket.on('voteDenied', () => {
     alert('Вы использовали все 3 голоса');
@@ -146,6 +151,8 @@ function initBoard() {
     if (fromEl && toContainer) {
       toContainer.insertBefore(fromEl, toContainer.children[newIndex] || null);
     }
+    // Обновляем значки после перемещения карточки
+    updateMedals();
   });
 }
 
@@ -195,6 +202,75 @@ function updateCardHighlight() {
   });
 }
 
+/**
+ * Определяет позицию карточки по общему количеству голосов во всех колонках
+ * @param {string} cardId - ID карточки
+ * @returns {number|null} - позиция (1, 2, 3) или null если не в топ-3
+ */
+function getCardPosition(cardId) {
+  // Получаем все карточки из всех колонок
+  const allCards = [];
+  ['good', 'bad', 'action'].forEach(column => {
+    const container = document.querySelector(`.cards[data-column="${column}"]`);
+    if (container) {
+      container.querySelectorAll('.card').forEach(cardEl => {
+        allCards.push({
+          id: cardEl.dataset.id,
+          votes: parseInt(cardEl.querySelector('.votes').textContent) || 0
+        });
+      });
+    }
+  });
+  
+  // Сортируем все карточки по голосам
+  allCards.sort((a, b) => b.votes - a.votes);
+  
+  // Находим позицию карточки
+  const position = allCards.findIndex(card => card.id === cardId) + 1;
+  return position <= 3 ? position : null;
+}
+
+/**
+ * Обновляет значки для всех карточек во всех колонках
+ */
+function updateMedals() {
+  // Обновляем значки для всех карточек во всех колонках
+  ['good', 'bad', 'action'].forEach(column => {
+    const container = document.querySelector(`.cards[data-column="${column}"]`);
+    if (!container) return;
+    
+    container.querySelectorAll('.card').forEach(cardEl => {
+      const cardId = cardEl.dataset.id;
+      const position = getCardPosition(cardId);
+      
+      // Удаляем существующие значки
+      const existingMedal = cardEl.querySelector('.medal');
+      if (existingMedal) {
+        existingMedal.remove();
+      }
+      
+      // Добавляем новый значок если карточка в топ-3
+      if (position) {
+        const medal = document.createElement('div');
+        medal.className = 'medal';
+        
+        if (position === 1) {
+          medal.className += ' gold';
+          medal.textContent = '🥇';
+        } else if (position === 2) {
+          medal.className += ' silver';
+          medal.textContent = '🥈';
+        } else if (position === 3) {
+          medal.className += ' bronze';
+          medal.textContent = '🥉';
+        }
+        
+        cardEl.appendChild(medal);
+      }
+    });
+  });
+}
+
 function renderCard(column, card) {
   const container = document.querySelector(`.cards[data-column="${column}"]`);
   const el = document.createElement('div');
@@ -217,6 +293,9 @@ function renderCard(column, card) {
   authors.add(card.author);
   updateUserList();
   updateCardHighlight();
+  
+  // Обновляем значки для всех карточек
+  updateMedals();
 }
 
 // список комнат

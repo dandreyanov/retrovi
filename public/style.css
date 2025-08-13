@@ -26,6 +26,39 @@
   100% { box-shadow: 0 0 0 rgba(231,76,60,0); }
 }
 
+/* Стили для значков первых трех мест */
+.card .medal {
+  position: absolute;
+  top: 4px;
+  left: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 12px;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  z-index: 10;
+}
+
+.card .medal.gold {
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  border: 2px solid #FF8C00;
+}
+
+.card .medal.silver {
+  background: linear-gradient(135deg, #C0C0C0, #A9A9A9);
+  border: 2px solid #808080;
+}
+
+.card .medal.bronze {
+  background: linear-gradient(135deg, #CD7F32, #B8860B);
+  border: 2px solid #8B4513;
+}
+
 /* Применяем fadeIn к новой карточке */
 .card.fade-in {
   animation: fadeIn 0.3s ease-out forwards;
@@ -96,6 +129,7 @@ html, body {
   color: #000 !important;
   border-left: 4px solid var(--card-border);
   padding: 0.75rem;
+  padding-left: 2.5rem; /* Увеличиваем левый отступ для значка */
   margin-bottom: 0.5rem;
   border-radius: 6px;
   box-shadow: 0 1px 2px rgba(0,0,0,0.1);
@@ -117,6 +151,7 @@ html, body {
   font-size: 0.8rem;
   color: #000 !important;
   margin-top: 0.5rem;
+  margin-left: 32px; /* Отступ для значка */
 }
 
 button {
@@ -280,6 +315,50 @@ body.dark-theme {
   --button-text: #fff;
   --header-bg: #222;
   --header-shadow: rgba(0,0,0,0.5);
+}
+
+/* Темные стили для таймера и нижней секции */
+body.dark-theme #timer {
+  background: var(--bg-page);
+  color: var(--text-color);
+}
+
+body.dark-theme #user-list-container {
+  background: var(--bg-page);
+  color: var(--text-color);
+}
+
+body.dark-theme #board-container {
+  background: var(--bg-page);
+}
+
+body.dark-theme .user-item {
+  background: var(--card-bg);
+  color: var(--text-color);
+  border-color: var(--column-border);
+}
+
+body.dark-theme .user-item:hover {
+  background: var(--column-border);
+  color: var(--button-text);
+}
+
+body.dark-theme .user-item.selected {
+  background: var(--column-border);
+  color: var(--button-text);
+}
+
+/* Дополнительные темные стили для заголовков и элементов */
+body.dark-theme #room-container h3 {
+  color: var(--column-border);
+}
+
+body.dark-theme #user-list-container h4 {
+  color: var(--text-color);
+}
+
+body.dark-theme #timer #time {
+  color: var(--column-border);
 }
 
 .column h2 {
