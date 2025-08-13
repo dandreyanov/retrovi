@@ -97,7 +97,7 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 3rem;
+  margin-top: 1rem;
 }
 
 #board {
@@ -110,7 +110,8 @@ html, body {
 .column {
   background: var(--column-bg);
   border: 2px solid var(--column-border);
-  padding: 1rem;
+  padding: 0.75rem;
+  padding-top: 0.5rem;
   border-radius: 8px;
   width: 220px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -228,27 +229,29 @@ button:hover {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.5rem 2rem;
+  padding: 0.25rem 1rem;
   background: var(--header-bg);
   box-shadow: 0 1px 4px var(--header-shadow);
 }
 
 /* Сам логотип */
 #site-logo {
-  height: 60px;     /* подберите нужный размер */
+  height: 40px;     /* подберите нужный размер */
   object-fit: contain;
 }
 
 #room-container {
   width: 100%;
   text-align: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.1rem;
+  margin-top: 0.25rem;
 }
 
 #room-container h3 {
   margin: 0;
   font-size: 1.25rem;
   color: #e74c3c;
+  margin-bottom: 0.25rem;
 }
 
 /* Контейнер списка пользователей */
